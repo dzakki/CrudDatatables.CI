@@ -33,6 +33,28 @@ class Api_News extends CI_Controller {
         return $this->response($this->news_model->get('id', $id));
     }
 
+    public function get_datatable()
+    {
+        ini_set('display_errors','off');
+        $fetch_data = $this->news_model->make_datatable();
+        $data = [];
+        foreach ($fetch_data as $row) {
+            $sub_data = [];
+            $sub_data[] = '';
+            $sub_data[] = $row->title;
+            $sub_data[] = $row->slug;
+            $sub_data[] = $row->text;
+            $data[] = $sub_data;
+        }
+        $output = [
+			"draw"  => intval($_POST["draw"]),
+            "recordsTotal"  => $this->news_model->records(),
+            "recordsFiltered" => $this->news_model->filtered(),
+            "data" => $data
+        ];
+        return $this->response($output);
+    }
+
     // Add a new item
     public function add()
     {
