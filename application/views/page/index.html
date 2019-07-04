@@ -8,20 +8,64 @@
     <link rel='stylesheet' type='text/css' media='screen' href='http://localhost/cruddatatables_ci/assets/datatables/datatables.min.css'>
 </head>
 <body>
-    <div class="container">
+    <header>
+        <div class="container">
             <h1>\ <u> News </u>\</h1>
+        </div>
+    </header>
+    <div class="container">
             <br/>
+            <div align="center">
+                <button type="button" class="btn btn-primary btnModalAdd" data-toggle="modal" data-target="#exampleModal">Add data</button>
+            </div>
+            <br>
+            <div class="success"></div>
             <table class="table table-striped table-responsive tableNews">
                 <thead class="thead-inverse">
-                    <th scope="row">#</th>
+                    <th scope="row">ID</th>
                     <th>Tittle</th>
                     <th>Slug</th>
                     <th>Text</th>
+                    <th>Option</th>
                 </thead>
                 <tbody>
                 </tbody>
             </table>
     </div>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Form news</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+
+            <div class="error"></div>
+             
+            <form class="form-news" method="post"> 
+              <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" class="form-control" id="title" name="title" placeholder="Lorem ipsum">
+              </div>
+              <div class="form-group">
+                <label for="text">Text</label>
+                <textarea class="form-control" id="text" id="text" name="text" rows="3" placeholder="enter .... "></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary btnAdd">Save</button>
+            <button type="button" class="btn btn-primary btnUpdate">Update</button>
+          </div>
+        </div>
+      </div>
+    </div>
+     
     <script src='http://localhost/cruddatatables_ci/assets/datatables/datatables.min.js'></script>
     <script src='http://localhost/cruddatatables_ci/assets/js/main.js'></script>    
 </body>

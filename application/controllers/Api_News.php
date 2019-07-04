@@ -40,10 +40,10 @@ class Api_News extends CI_Controller {
         $data = [];
         foreach ($fetch_data as $row) {
             $sub_data = [];
-            $sub_data[] = '';
-            $sub_data[] = $row->title;
-            $sub_data[] = $row->slug;
-            $sub_data[] = $row->text;
+            $sub_data['id'] = $row->id;
+            $sub_data['title'] = $row->title;
+            $sub_data['slug'] = $row->slug;
+            $sub_data['text'] = $row->text;
             $data[] = $sub_data;
         }
         $output = [
@@ -59,7 +59,6 @@ class Api_News extends CI_Controller {
     public function add()
     {
         $this->form_validation->set_rules('title', 'title', 'required|min_length[5]');
-        $this->form_validation->set_rules('slug', 'slug', 'required|min_length[5]');
         $this->form_validation->set_rules('text', 'text', 'required|min_length[5]');
         
         if ($this->form_validation->run() == FALSE) {
@@ -76,7 +75,6 @@ class Api_News extends CI_Controller {
     public function update( $id )
     {
         $this->form_validation->set_rules('title', 'title', 'required|min_length[5]');
-        $this->form_validation->set_rules('slug', 'slug', 'required|min_length[5]');
         $this->form_validation->set_rules('text', 'text', 'required|min_length[5]');
         
         if ($this->form_validation->run() == FALSE) {

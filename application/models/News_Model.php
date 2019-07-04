@@ -68,9 +68,11 @@ class News_Model extends CI_Model {
     public function insert()
     {
         # code...
+        $this->load->helper('url');
+        $slug = url_title($this->input->post('title'), 'dash', TRUE);
         $data = [
             'title' => $this->input->post('title'),
-            'slug'  => $this->input->post('slug'),
+            'slug'  => $slug,
             'text'  => $this->input->post('text')
         ];
         if ($this->db->insert($this->table, $data)) {
@@ -85,9 +87,11 @@ class News_Model extends CI_Model {
     public function update($id)
     {
         # code
+        $this->load->helper('url');
+        $slug = url_title($this->input->post('title'), 'dash', TRUE);
         $data = [
             'title' => $this->input->post('title'),
-            'slug'  => $this->input->post('slug'),
+            'slug'  => $slug,
             'text'  => $this->input->post('text')
         ];
         if ($this->db->where($this->_id, $id)->update($this->table, $data)) {
