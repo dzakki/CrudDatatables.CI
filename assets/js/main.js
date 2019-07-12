@@ -26,15 +26,14 @@ $(document).ready(function () {
                 { "data" : "slug" },
                 { "data" : "text" },
                 { 
-                    "data" : "id",
+                    "data"  : "id",
                     "orderable" : false,
-                    "mRender" : function(data){
+                    "render"     : function(data){
                          return '<button class="btn btn-info btn-xs btn-sm btnModalUpdate" id="'+data+'">Update</button> \n\
                                 <button class="btn btn-warning btn-xs btn-sm btnDelete" id="'+data+'">Delete</button>';
                     }
                  }
             ],
-            "deferRender": true,
             "aLengthMenu": [[5, 10, 50],[ 5, 10, 50]], // Combobox Limit
         });
     // == End Datatables
@@ -64,25 +63,22 @@ $(document).ready(function () {
         $('body').on('click', '.btnAdd', function(event) {
             event.preventDefault();
             /* Act on the event */
-            item = $('.form-news').serialize();
-            $.ajax({
-                url: baseUrl+'api/news/i',
-                type: 'POST',
-                dataType: 'json',
-                data: item,
-                statusCode : {
-                    200: function(response){
-                        // console.log('success');
-                         $('#exampleModal').modal('hide');
-                        _success(response.message);
-                        tableNews.ajax.reload();
-                    },
-                    203: function(response){
-                        console.log(response.message)
-                        _error(response.message)
-                    }
+            let url      = baseUrl+'api/news/i'
+            let type     = 'POST'
+            item         = $('.form-news').serialize();
+            let callback = {
+                200: function(response){
+                    // console.log('success');
+                     $('#exampleModal').modal('hide');
+                    _success(response.message);
+                    tableNews.ajax.reload();
+                },
+                203: function(response){
+                    // console.log(response.message)
+                    _error(response.message)
                 }
-            })
+            }
+            getData(url, type, item, callback)
         });
     //  END add data
 
@@ -94,40 +90,42 @@ $(document).ready(function () {
             $('#exampleModal').modal('show');
             btnUpdate.show();
             btnAdd.hide();
-            id = $(this).attr('id');
-            $.ajax({
-                url: baseUrl+'api/news/'+id,
-                type: 'GET',
-                dataType: 'json',
-                success: function(response){
-                    // console.log(response);
+            id           = $(this).attr('id');
+            let url      = baseUrl+'api/news/'+id
+            let type     = 'GET'
+            let callback = {
+                200: function(response){
                     $('[name="title"]').val(response.title)
                     $('[name="text"]').val(response.text)
+                },
+                203: function(response){
+                    $('#exampleModal').modal('hide');
+                    _error(response.message)
                 }
-            })
+            }
+            getData(url, type, item, callback)
 
             // == Update data
-                $('body').on('click', '.btnUpdate', function() {
+                $('body').on('click', '.btnUpdate', function(event) {
+                    event.preventDefault();
                     /* Act on the event */
-                    item = $('.form-news').serialize();
-                    $.ajax({
-                        url: baseUrl+'api/news/'+id,
-                        type: 'POST',
-                        dataType: 'json',
-                        data: item,
-                        statusCode: {
-                            200: function(response){
-                                $('#exampleModal').modal('hide');
-                                _success(response.message)
-                                tableNews.ajax.reload();
-                            },
-                            203: function(response){
-                                _error(response.message)
-                            }
+                    let url      = baseUrl+'api/news/'+id
+                    item         = $('.form-news').serialize();
+                    let type     = 'POST'
+                    let callback = {
+                        200: function(response){
+                            $('#exampleModal').modal('hide');
+                            _success(response.message)
+                            tableNews.ajax.reload();
+                        },
+                        203: function(response){
+                            _error(response.message)
                         }
-                    })
+                    }
+                    getData(url, type, item, callback)
                 });
             // == END Update data
+
         });
     // == END modal update
 
@@ -135,44 +133,52 @@ $(document).ready(function () {
         $('body').on('click', '.btnDelete', function(event) {
             event.preventDefault();
             /* Act on the event */
-            id = $(this).attr('id')
-            $.ajax({
-                url: baseUrl+'api/news/'+id,
-                type: 'DELETE',
-                dataType: 'json',
-                statusCode: {
-                    200: function(response){
-                    // console.log('success');
+            id           = $(this).attr('id')
+            let url      = baseUrl+'api/news/'+id
+            let type     = "DELETE"
+            let callback = {
+                200: function(response){
                     _success(response.message);
                     tableNews.ajax.reload();
-                    },
-                    203: function(response){
-                        console.log(response.message)
-                        _error(response.message)
-                    }
+                },
+                203: function(response){
+                    _error(response.message)
                 }
-            })
+            }
+            getData(url, type, item, callback)
         });
     // == END Delete data
-
-    // == Message when insert update and delete
-        function _error(message){
-            msg  = '<div class="alert alert-warning alert-dismissible show" role="alert">';
-            msg += '<strong>Error!</strong>'+message;
-            msg += '<button type="button" class="close" data-dismiss="alert" aria-label="Close">';
-            msg += '<span aria-hidden="true">&times;</span>';
-            msg += '</button>';
-            msg += '</div>';
-            $('.error').html(msg);
-        }
-        function _success(message){
-            msg  = '<div class="alert alert-success alert-dismissible show" role="alert">';
-            msg += '<strong>Success! </strong>'+message;
-            msg += '<button type="button" class="close" data-dismiss="alert" aria-label="Close">';
-            msg += '<span aria-hidden="true">&times;</span>';
-            msg += '</button>';
-            msg += '</div>';
-            $('.success').html(msg);
-        }
-    // == END Message when insert update and delete
 });
+
+// == Message when insert update and delete
+    function getData(url, type , data ,callback){
+        $.ajax({
+            url: url,
+            type: type,
+            data: data,
+            dataType: 'json',
+            statusCode: callback
+        })
+        .fail(function() {
+            console.log("error");
+        })
+    }
+    function _error(message){
+        msg  = '<div class="alert alert-warning alert-dismissible show" role="alert">';
+        msg += '<strong>Error!</strong>'+message;
+        msg += '<button type="button" class="close" data-dismiss="alert" aria-label="Close">';
+        msg += '<span aria-hidden="true">&times;</span>';
+        msg += '</button>';
+        msg += '</div>';
+        $('.error').html(msg);
+    }
+    function _success(message){
+        msg  = '<div class="alert alert-success alert-dismissible show" role="alert">';
+        msg += '<strong>Success! </strong>'+message;
+        msg += '<button type="button" class="close" data-dismiss="alert" aria-label="Close">';
+        msg += '<span aria-hidden="true">&times;</span>';
+        msg += '</button>';
+        msg += '</div>';
+        $('.success').html(msg);
+    }
+// == END Message when insert update and delete
