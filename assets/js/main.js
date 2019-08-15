@@ -1,3 +1,47 @@
+
+class Resource {
+    constructor(){
+        this.BaseUrl = "http://localhost/cruddatatables_ci/"
+    }
+    getAll(){
+        return $.ajax({
+            url: this.BaseUrl+'api/news',
+            type: 'GET',
+            dataType: 'json',
+        })
+    }
+    get(id){
+        return $.ajax({
+            url: this.BaseUrl + 'api/news/' + id,
+            type: 'GET',
+            dataType: 'json',
+        })
+    }
+    add(item){
+        return $.ajax({
+            url: this.BaseUrl + 'api/news/i',
+            type: 'POST',
+            dataType: 'json',
+            data: item,
+        })
+    }
+    update(item, id){
+        return $.ajax({
+            url: this.BaseUrl + 'api/news/' + id,
+            type: 'POST',
+            dataType: 'json',
+            data: item,
+        })   
+    }
+    delete(id){
+        return $.ajax({
+            url: this.BaseUrl + 'api/news/' + id,
+            type: 'DELETE',
+            dataType: 'json',
+        })
+    }
+}
+
 const baseUrl = 'http://localhost/cruddatatables_ci/'
 //  == default variable
 let tableNews = null;
@@ -6,26 +50,53 @@ let btnUpdate = null;
 let item = null;
 let msg = null;
 let id = null;
+
+// == Remove value in form
+    function removeValue(){
+        $('[type="text"]').val('')
+        $('textarea').val('')
+    }
+// == END Remove value in form
+
 //  == END default variable
 $(document).ready(function () {
-    // == Datatables
-        tableNews = $('.tableNews').DataTable({
-            "processing": true,
-            "serverSide": true,
-            "ordering": true,
-            "scrollX": true,
+
+    let resource = new Resource(),
+        dataset = [],
+        showData;
+
+    resource.getAll().done(function(response){
+        // console.log(response)
+        dataset.push(...response)
+        showData = $('.tableNews').DataTable({
+            data: dataset,
             "order": [[ 0, 'desc' ]], 
-            "ajax":
-            {
-                "url": baseUrl+"api/news/datatables", // URL file untuk proses select datanya
-                "type": "POST"
-            },
             "columns": [
-                { "data" : "id" },
-                { "data" : "title" },
-                { "data" : "slug" },
-                { "data" : "text" },
+                { title: "ID" },
+                { title: "Title" },
+                { title: "Slug", },
+                { title: "Text", },
+                { title: "Option", width: "75px" },
+            ],
+            "columnDefs": [
                 { 
+                    "targets": 0,
+                    "data" : "id"
+                },
+                { 
+                    "targets": 1,
+                    "data" : "title" 
+                },
+                { 
+                    "targets": 2,
+                    "data" : "slug" 
+                },
+                { 
+                    "targets": 3,
+                    "data" : "text" 
+                },
+                { 
+                    "targets": 4,
                     "data"  : "id",
                     "orderable" : false,
                     "render"     : function(data){
@@ -35,15 +106,8 @@ $(document).ready(function () {
                  }
             ],
             "aLengthMenu": [[5, 10, 50],[ 5, 10, 50]], // Combobox Limit
-        });
-    // == End Datatables
-
-    // == Remove value in form
-        function removeValue(){
-            $('[type="text"]').val('')
-            $('textarea').val('')
-        }
-    // == END Remove value in form
+        })
+    })
 
     // == .btnModalAdd .btnModalUpdate .btnAdd .btnUpdate
     btnAdd = $('.btnAdd');
@@ -63,22 +127,24 @@ $(document).ready(function () {
         $('body').on('click', '.btnAdd', function(event) {
             event.preventDefault();
             /* Act on the event */
-            let url      = baseUrl+'api/news/i'
-            let type     = 'POST'
-            item         = $('.form-news').serialize();
-            let callback = {
-                200: function(response){
-                    // console.log('success');
-                     $('#exampleModal').modal('hide');
-                    _success(response.message);
-                    tableNews.ajax.reload();
-                },
-                203: function(response){
-                    // console.log(response.message)
-                    _error(response.message)
-                }
-            }
-            getData(url, type, item, callback)
+            item = $('.form-news').serialize();
+            resource.add(item).done(function(response){
+                // console.log(response)
+                resource.get(response.id).done(function(res){
+                    // console.log(res.id)
+                    showData.row.add({
+                        "id" : res.id,
+                        "title" : res.title,
+                        "slug" : res.slug,
+                        "text" : res.text,
+                    }).draw()
+                })
+                
+                dataset.push(response)
+                // console.log(dataset)
+                $('#exampleModal').modal('hide');
+                _success(response.message)
+            })
         });
     //  END add data
 
@@ -90,39 +156,32 @@ $(document).ready(function () {
             $('#exampleModal').modal('show');
             btnUpdate.show();
             btnAdd.hide();
-            id           = $(this).attr('id');
-            let url      = baseUrl+'api/news/'+id
-            let type     = 'GET'
-            let callback = {
-                200: function(response){
-                    $('[name="title"]').val(response.title)
-                    $('[name="text"]').val(response.text)
-                },
-                203: function(response){
-                    $('#exampleModal').modal('hide');
-                    _error(response.message)
-                }
-            }
-            getData(url, type, item, callback)
+
+            idRow = $(this).parent().parent()
+            id = $(this).attr('id');
+            resource.get(id).done(function(response){
+                $('[name="title"]').val(response.title)
+                $('[name="text"]').val(response.text)
+            })
 
             // == Update data
                 $('body').on('click', '.btnUpdate', function(event) {
                     event.preventDefault();
                     /* Act on the event */
-                    let url      = baseUrl+'api/news/'+id
-                    item         = $('.form-news').serialize();
-                    let type     = 'POST'
-                    let callback = {
-                        200: function(response){
-                            $('#exampleModal').modal('hide');
-                            _success(response.message)
-                            tableNews.ajax.reload();
-                        },
-                        203: function(response){
-                            _error(response.message)
-                        }
-                    }
-                    getData(url, type, item, callback)
+                    item = $('.form-news').serialize();
+                    resource.update(item, id).done(function(response){
+                        _success(response.message)
+                        $('#exampleModal').modal('hide');
+                        resource.get(id).done(function(res){
+                            showData.row(idRow).data({
+                                "id" : res.id,
+                                "title" : res.title,
+                                "slug" : res.slug,
+                                "text" : res.text,
+                            }).draw()
+                        })
+
+                    })
                 });
             // == END Update data
 
@@ -133,36 +192,18 @@ $(document).ready(function () {
         $('body').on('click', '.btnDelete', function(event) {
             event.preventDefault();
             /* Act on the event */
-            id           = $(this).attr('id')
-            let url      = baseUrl+'api/news/'+id
-            let type     = "DELETE"
-            let callback = {
-                200: function(response){
-                    _success(response.message);
-                    tableNews.ajax.reload();
-                },
-                203: function(response){
-                    _error(response.message)
-                }
-            }
-            getData(url, type, item, callback)
+            idRow = $(this).parent().parent()
+            id = $(this).attr('id')
+            resource.delete(id).done(function(response){
+                showData.row(idRow).remove().draw();
+                _success(response.message)
+            })
         });
     // == END Delete data
 });
 
 // == Message when insert update and delete
-    function getData(url, type , data ,callback){
-        $.ajax({
-            url: url,
-            type: type,
-            data: data,
-            dataType: 'json',
-            statusCode: callback
-        })
-        .fail(function() {
-            console.log("error");
-        })
-    }
+
     function _error(message){
         msg  = '<div class="alert alert-warning alert-dismissible show" role="alert">';
         msg += '<strong>Error!</strong>'+message;
